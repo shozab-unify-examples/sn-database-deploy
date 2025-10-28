@@ -75,6 +75,17 @@ jobs:
           echo "  - Constraints added: 2"
           echo "  - Total execution time: 4.2s"
           log "Database schema deployment completed successfully"
+
+      - name: Register Artifact
+        id: reg_build
+        uses: cloudbees-io/register-build-artifact@v2
+        with:
+          name: Changeset
+          version: 2.4.1
+          commit: d670460b4b4aece5915caf5c68d12f560a9fe3e4
+          ref: main
+          labels: db
+          
       - name: Tagging database
         uses: docker://golang:1.20.3-alpine3.17
         shell: sh
