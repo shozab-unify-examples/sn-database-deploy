@@ -135,7 +135,7 @@ jobs:
     steps:
       - name: Update Inventory
         with:
-          artifact-id: ${{ needs.db-schema.outputs.artifact-id }}
+          artifact-id: ${{ inputs.artifact-id }}
           labels: app=db,env=prod
           target-environment: prod
         uses: cloudbees-io/register-deployed-artifact@v2
