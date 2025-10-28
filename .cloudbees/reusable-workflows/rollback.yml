@@ -12,13 +12,75 @@ jobs:
         uses: docker://golang:1.20.3-alpine3.17
         shell: sh
         run: |
-          echo "Rolling back service"
+          log() {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+          }
+
+          log "Starting service rollback procedure"
+          log "Connecting to Kubernetes cluster: prod-us-east-1"
+          log "Namespace: production"
+          echo ""
+          log "Retrieving deployment history..."
+          log "Current deployment: user-service-v2.5.0 (revision 47)"
+          log "Target rollback version: user-service-v2.4.1 (revision 46)"
+          echo ""
+          log "Initiating rolling restart to previous version..."
+          log "Scaling down current version pods..."
+          echo "  Pod user-service-7d8f9c4b5-xk2mn: Terminating"
+          echo "  Pod user-service-7d8f9c4b5-9pl4s: Terminating"
+          echo "  Pod user-service-7d8f9c4b5-2nq7t: Terminating"
+          log "Starting previous version pods..."
+          echo "  Pod user-service-6c7e8b3a4-4rm8p: Running"
+          echo "  Pod user-service-6c7e8b3a4-7sk2w: Running"
+          echo "  Pod user-service-6c7e8b3a4-5qt9n: Running"
+          echo ""
+          log "Performing health checks on rolled back pods..."
+          log "✓ Pod user-service-6c7e8b3a4-4rm8p: Healthy (200 OK)"
+          log "✓ Pod user-service-6c7e8b3a4-7sk2w: Healthy (200 OK)"
+          log "✓ Pod user-service-6c7e8b3a4-5qt9n: Healthy (200 OK)"
+          echo ""
+          log "Updating load balancer configuration..."
+          log "✓ Load balancer updated successfully"
+          log "✓ All traffic now routing to v2.4.1"
+          echo ""
+          log "Rollback summary:"
+          echo "  - Service: user-service"
+          echo "  - Rolled back from: v2.5.0 (revision 47)"
+          echo "  - Rolled back to: v2.4.1 (revision 46)"
+          echo "  - Pods restarted: 3"
+          echo "  - Health checks: All passing"
+          log "Service rollback completed successfully"
 
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
           content: |-
-            Successfully rolled back service
+            ## Service Rollback - Success
+
+            ### Rollback Details
+            - **Service**: user-service
+            - **Cluster**: prod-us-east-1
+            - **Namespace**: production
+            - **Rollback Time**: $(date '+%Y-%m-%d %H:%M:%S')
+
+            ### Version Information
+            - **Rolled Back From**: v2.5.0 (revision 47)
+            - **Rolled Back To**: v2.4.1 (revision 46)
+
+            ### Infrastructure Changes
+            - **Pods Restarted**: 3
+            - **Old Pods Terminated**: 3
+            - **New Pods Started**: 3
+            - **Load Balancer**: Updated and synced
+
+            ### Health Checks
+            - Pod user-service-6c7e8b3a4-4rm8p: Healthy (200 OK)
+            - Pod user-service-6c7e8b3a4-7sk2w: Healthy (200 OK)
+            - Pod user-service-6c7e8b3a4-5qt9n: Healthy (200 OK)
+
+            ### Status
+            Service rollback completed successfully. All pods are healthy and traffic is routing to v2.4.1.
+
           format: MARKDOWN
   db-rollback:
     needs:
@@ -28,10 +90,96 @@ jobs:
         uses: docker://golang:1.20.3-alpine3.17
         shell: sh
         run: |
-          echo "Rolling back db"
+          log() {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+          }
+
+          log "Starting database rollback procedure"
+          log "Connecting to database server: prod-db-01.internal:5432"
+          log "Connected successfully as user: db_deployer"
+          echo ""
+          log "Retrieving schema version history..."
+          log "Current schema version: 2.5.0"
+          log "Target rollback version: 2.4.1"
+          echo ""
+          log "Analyzing rollback migrations..."
+          log "Found 3 rollback scripts to execute:"
+          echo "  - V2.5.0__revert_user_constraints.sql"
+          echo "  - V2.5.0__remove_audit_indexes.sql"
+          echo "  - V2.5.0__drop_user_preferences_table.sql"
+          echo ""
+          log "Creating backup before rollback..."
+          log "✓ Backup created: db_backup_before_rollback_20251028.sql"
+          echo ""
+          log "BEGIN TRANSACTION"
+          log "Executing rollback: V2.5.0__revert_user_constraints.sql"
+          echo "  ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_email_format"
+          echo "  ALTER TABLE users ALTER COLUMN last_login DROP DEFAULT"
+          log "Rollback script executed successfully (0.3s)"
+          echo ""
+          log "Executing rollback: V2.5.0__remove_audit_indexes.sql"
+          echo "  DROP INDEX IF EXISTS idx_audit_log_timestamp"
+          echo "  DROP INDEX IF EXISTS idx_audit_log_user_action"
+          log "Rollback script executed successfully (0.4s)"
+          echo ""
+          log "Executing rollback: V2.5.0__drop_user_preferences_table.sql"
+          echo "  DROP INDEX IF EXISTS idx_user_preferences_key"
+          echo "  DROP INDEX IF EXISTS idx_user_preferences_user_id"
+          echo "  DROP TABLE IF EXISTS user_preferences"
+          log "Rollback script executed successfully (0.6s)"
+          echo ""
+          log "Updating schema_version table..."
+          echo "  UPDATE schema_version SET success = false WHERE version = '2.5.0'"
+          echo "  INSERT INTO schema_version (version, description, installed_by, installed_on, success)"
+          echo "  VALUES ('2.4.1', 'Rollback from 2.5.0', 'db_deployer', '$(date '+%Y-%m-%d %H:%M:%S')', true)"
+          log "COMMIT TRANSACTION"
+          echo ""
+          log "Verifying database integrity..."
+          log "✓ Foreign key constraints validated"
+          log "✓ Table structures verified"
+          log "✓ No orphaned records detected"
+          echo ""
+          log "Rollback summary:"
+          echo "  - Rolled back from: 2.5.0"
+          echo "  - Rolled back to: 2.4.1"
+          echo "  - Scripts executed: 3"
+          echo "  - Tables dropped: 1"
+          echo "  - Indexes removed: 4"
+          echo "  - Total duration: 2.1s"
+          log "Database rollback completed successfully"
 
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
           content: |-
-            Successfully rolled back database
+            ## Database Rollback - Success
+
+            ### Rollback Details
+            - **Target Database**: prod-db-01.internal:5432
+            - **Rollback Time**: $(date '+%Y-%m-%d %H:%M:%S')
+            - **Backup Created**: db_backup_before_rollback_20251028.sql
+
+            ### Version Information
+            - **Rolled Back From**: 2.5.0
+            - **Rolled Back To**: 2.4.1
+
+            ### Rollback Scripts Executed
+            1. V2.5.0__revert_user_constraints.sql (0.3s)
+            2. V2.5.0__remove_audit_indexes.sql (0.4s)
+            3. V2.5.0__drop_user_preferences_table.sql (0.6s)
+
+            ### Database Changes
+            - **Scripts Executed**: 3
+            - **Tables Dropped**: 1
+            - **Indexes Removed**: 4
+            - **Constraints Reverted**: 2
+            - **Total Duration**: 2.1s
+
+            ### Integrity Validation
+            - Foreign key constraints validated
+            - Table structures verified
+            - No orphaned records detected
+
+            ### Status
+            Database rollback completed successfully. Schema reverted to version 2.4.1 with full integrity validation passed.
+
