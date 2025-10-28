@@ -1,0 +1,37 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: rollback
+
+on:
+  workflow_call:
+
+jobs:
+  service-rollback:
+    steps:
+      - name: Roll back service
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          echo "Rolling back service"
+
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            Successfully rolled back service
+          format: MARKDOWN
+  db-rollback:
+    needs:
+      - service-rollback
+    steps:
+      - name: DB Rollback
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          echo "Rolling back db"
+
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            Successfully rolled back database

@@ -1,0 +1,23 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: test
+on:
+  workflow_dispatch:
+jobs:
+  db-schema:
+    uses: ldorg/database-deploy/.cloudbees/reusable-workflows/db-schema.yml
+    with:
+      version: "v1.0.3"
+
+  deploy-app:
+    uses: ldorg/database-deploy/.cloudbees/reusable-workflows/deploy-app.yml
+    needs:
+      - db-schema
+    with:
+      artifact-id: "b527cc3d-4b5b-4767-a557-a1c30d7c0f1e"
+      environment: "prod"
+
+  rollback:
+    uses: ldorg/database-deploy/.cloudbees/reusable-workflows/rollback.yml
+    needs:
+      - deploy-app

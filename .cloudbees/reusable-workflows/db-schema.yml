@@ -1,0 +1,35 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: rollback
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+jobs:
+  apply-schema:
+    steps:
+      - uses: cloudbees-io/checkout@v1
+        name: Get source code
+      - name: Test outputs
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          echo "Applying the database schema..."
+      - name: Tagging database
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          echo "Tagging the database with ${{ inputs.version }}..."
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## Success
+
+            Successfully applied the database schema and tagged the database.
+
+          format: MARKDOWN

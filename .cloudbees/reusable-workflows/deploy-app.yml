@@ -1,0 +1,52 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: rollback
+
+on:
+  workflow_call:
+    inputs:
+      artifact-id:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Rolling Deployment
+        kind: deploy
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          echo "Rolling the application"
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## Deployed app
+
+            Running my-app:${{ inputs.artifact-id }}
+          format: MARKDOWN
+      - name: Register_deployed_artifact
+        uses: https://github.com/cloudbees-io/register-deployed-artifact@v2
+        with:
+          artifact-id: ${{ inputs.artifact-id }}
+
+  continuous-verification:
+    outputs:
+      STATE: ${{ steps.monitor.outputs.STATE }}
+    environment: ${{ inputs.environment}}
+    needs:
+      - deploy
+    steps:
+      - name: Monitor update
+        id: monitor
+        uses: docker://golang:1.20.3-alpine3.17
+        shell: sh
+        run: |
+          sleep 15
+          echo "All looks good"
+          echo "SUCCESS" >> $CLOUDBEES_OUTPUTS/STATE
