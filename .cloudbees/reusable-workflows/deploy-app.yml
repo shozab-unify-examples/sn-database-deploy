@@ -83,6 +83,12 @@ jobs:
           echo "  - Health checks: All passing"
           echo "  - Rollout status: Complete"
           log "Rolling deployment completed successfully"
+      - name: Update Inventory
+        with:
+          artifact-id: ${{ inputs.artifact-id }}
+          labels: app=db,env=prod
+          target-environment: prod
+        uses: cloudbees-io/register-deployed-artifact@v2
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
@@ -133,13 +139,6 @@ jobs:
     needs:
       - deploy
     steps:
-      - name: Update Inventory
-        with:
-          artifact-id: ${{ inputs.artifact-id }}
-          labels: app=db,env=prod
-          target-environment: prod
-        uses: cloudbees-io/register-deployed-artifact@v2
-        
       - name: Monitor update
         id: monitor
         uses: docker://golang:1.20.3-alpine3.17
