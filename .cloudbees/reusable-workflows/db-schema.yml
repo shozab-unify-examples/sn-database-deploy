@@ -82,6 +82,7 @@ jobs:
         with:
           name: Changeset
           version: 2.4.1
+          url: https://github.com/unify-poc/unify-poc-app/blob/main/sample_ecommerce.sql
           commit: d670460b4b4aece5915caf5c68d12f560a9fe3e4
           ref: main
           labels: db
