@@ -30,10 +30,6 @@ jobs:
 
             Running my-app:${{ inputs.artifact-id }}
           format: MARKDOWN
-      - name: Register_deployed_artifact
-        uses: https://github.com/cloudbees-io/register-deployed-artifact@v2
-        with:
-          artifact-id: ${{ inputs.artifact-id }}
 
   continuous-verification:
     outputs:
