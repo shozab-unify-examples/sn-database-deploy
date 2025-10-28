@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
 jobs:
   db-schema:
-    uses: ldorg/database-deploy/.cloudbees/reusable-workflows/db-schema.yml
+    uses: shozab-unify-examples/sn-database-deploy/.cloudbees/reusable-workflows/db-schema.yml
     with:
       version: "v1.0.3"
 
   deploy-app:
-    uses: ldorg/database-deploy/.cloudbees/reusable-workflows/deploy-app.yml
+    uses: shozab-unify-examples/sn-database-deploy/.cloudbees/reusable-workflows/deploy-app.yml
     needs:
       - db-schema
     with:
@@ -18,6 +18,6 @@ jobs:
       environment: "prod"
 
   rollback:
-    uses: ldorg/database-deploy/.cloudbees/reusable-workflows/rollback.yml
+    uses: shozab-unify-examples/sn-database-deploy/.cloudbees/reusable-workflows/rollback.yml
     needs:
       - deploy-app
