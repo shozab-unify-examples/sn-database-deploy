@@ -14,7 +14,7 @@ jobs:
     needs:
       - db-schema
     with:
-      artifact-id: "b527cc3d-4b5b-4767-a557-a1c30d7c0f1e"
+      artifact-id: ${{ needs.db-schema.outputs.artifact-id }} 
       environment: "prod"
 
   rollback:
