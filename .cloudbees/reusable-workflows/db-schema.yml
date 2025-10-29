@@ -8,9 +8,16 @@ on:
       version:
         type: string
         required: true
+    outputs:
+      artifact-id:            
+        description: "Artifact ID from register-build-artifact"
+        value: ${{ jobs.apply-schema.outputs.artifact-id }}        
 
 jobs:
   apply-schema:
+    outputs:
+      # capture the action's output from the step id (reg_build) and expose at job level
+      artifact-id: ${{ steps.reg_build.outputs.artifact-id }}  
     steps:
       - uses: cloudbees-io/checkout@v1
         name: Get source code
@@ -81,7 +88,7 @@ jobs:
         uses: cloudbees-io/register-build-artifact@v2
         with:
           name: Changeset
-          version: 2.4.1
+          version: ${{ inputs.version }}      # (optional) keep this aligned with the input
           url: https://github.com/unify-poc/unify-poc-app/blob/main/sample_ecommerce.sql
           commit: d670460b4b4aece5915caf5c68d12f560a9fe3e4
           ref: main
