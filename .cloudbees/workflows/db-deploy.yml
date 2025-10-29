@@ -7,7 +7,7 @@ jobs:
   db-schema:
     uses: shozab-unify-examples/sn-database-deploy/.cloudbees/reusable-workflows/db-schema.yml
     with:
-      version: "v2.0.1"
+      version: "v3.0.1"
 
   deploy-app:
     uses: shozab-unify-examples/sn-database-deploy/.cloudbees/reusable-workflows/deploy-app.yml
